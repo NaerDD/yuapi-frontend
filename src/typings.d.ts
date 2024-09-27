@@ -18,3 +18,10 @@ declare module 'react-fittext';
 declare module 'bizcharts-plugin-slider';
 
 declare const REACT_APP_ENV: 'test' | 'dev' | 'pre' | false;
+
+/*
+    全局的初始数据流，可以用它在插件之间共享数据
+*/
+interface initialState{
+    loginUser?:API.UserVO;
+}

@@ -15,6 +15,7 @@ import { Button, Drawer, Input, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+import { listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
 
 /**
  * @en-US Add node
@@ -104,74 +105,66 @@ const TableList: React.FC = () => {
    * @zh-CN 国际化配置
    * */
 
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const columns: ProColumns<API.InterfaceInfo>[] = [
     {
-      title: '规则名称',
+      title: 'id',
+      dataIndex: 'id',
+      valueType:'index'
+    },
+    {
+      title: '接口名称',
       dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      valueType:'text'
     },
     {
       title: '描述',
-      dataIndex: 'desc',
+      dataIndex: 'description',
       valueType: 'textarea',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
+      title: '请求方法',
+      dataIndex: 'method',
+      valueType: 'text',
+    },
+    {
+      title: 'url',
+      dataIndex: '接口地址',
+      valueType: 'text',
+    },
+    {
+      title: '请求头',
+      dataIndex: 'requestHeader',
+      valueType: 'textarea',
+    },
+    {
+      title: '响应头',
+      dataIndex: 'responseHeader',
+      valueType: 'textarea',
     },
     {
       title: '状态',
       dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
+      hideInForm:true,
+      valueEnum:{
+        0:{
+          text:'关闭',
+          status:'Default'
         },
-        1: {
-          text: '运行中',
-          status: 'Processing',
+        1:{
+          text:'开启',
+          status:'Processing'
         },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
+      }
     },
     {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
+      title: '创建时间',
+      dataIndex: 'createTime',
       valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updateTime',
+      valueType: 'dateTime',
     },
     {
       title: '操作',
@@ -185,7 +178,7 @@ const TableList: React.FC = () => {
             setCurrentRow(record);
           }}
         >
-          配置
+          修改
         </a>,
         <a key="subscribeAlert" href="https://procomponents.ant.design/">
           订阅警报
@@ -213,7 +206,33 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request = {
+          //将返回的数据经过处理后放在param上
+          async (
+            params: U & {
+              pageSize?: number;
+              current?: number;
+              keyword?: string;
+          },
+            sort: Record<string, SortOrder>,filter: Record<string, (string | number)[] | null>) => {
+            const res = await listInterfaceInfoByPageUsingGet({
+            ...params
+          })
+          console.log(res)
+          if(res?.data){
+            return{
+              data: res?.data.records | [],
+              success: true,
+              total: res.data.total
+          }
+          }else{
+            return{
+              data:[],
+              success: false,
+              total: 0
+          }
+          }
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
