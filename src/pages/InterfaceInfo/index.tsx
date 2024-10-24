@@ -3,40 +3,18 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
-  ModalForm,
   PageContainer,
   ProDescriptions,
-  ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
 import React, { useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import { listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
+import type { FormValueType } from './components/UpdateModal';
+import UpdateModal from './components/UpdateModal';
+import { addInterfaceInfoUsingPost, listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
+import CreateModal from './components/CreateModel';
 
-/**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fields
- */
-const handleAdd = async (fields: API.RuleListItem) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addRule({
-      ...fields,
-    });
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
 
 /**
  * @en-US Update node
@@ -89,16 +67,38 @@ const TableList: React.FC = () => {
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
    *  */
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+  const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   /**
    * @en-US The pop-up window of the distribution update window
    * @zh-CN 分布更新窗口的弹窗
    * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+
+  /**
+ * @en-US Add node
+ * @zh-CN 添加节点
+ * @param fieldse
+ */
+const handleAdd = async (fields: API.InterfaceInfo) => {
+  const hide = message.loading('正在添加');
+  try {
+    await addInterfaceInfoUsingPost({
+      ...fields,
+    });
+    hide();
+    message.success('创建成功');
+    handleModalVisible(false);
+    return true;
+  } catch (error :any) {
+    hide();
+    message.error('创建失败'+ error.message);
+    return false;
+  }
+};
 
   /**
    * @en-US International configuration
@@ -114,7 +114,12 @@ const TableList: React.FC = () => {
     {
       title: '接口名称',
       dataIndex: 'name',
-      valueType:'text'
+      valueType:'text',
+      formItemProps:{
+        rules:[{
+          required:true,
+        }]
+      }
     },
     {
       title: '描述',
@@ -160,11 +165,13 @@ const TableList: React.FC = () => {
       title: '创建时间',
       dataIndex: 'createTime',
       valueType: 'dateTime',
+      hideInForm:true
     },
     {
       title: '更新时间',
       dataIndex: 'updateTime',
       valueType: 'dateTime',
+      hideInForm:true
     },
     {
       title: '操作',
@@ -174,14 +181,11 @@ const TableList: React.FC = () => {
         <a
           key="config"
           onClick={() => {
-            handleUpdateModalOpen(true);
+            handleUpdateModalVisible(true);
             setCurrentRow(record);
           }}
         >
           修改
-        </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
-          订阅警报
         </a>,
       ],
     },
@@ -200,7 +204,7 @@ const TableList: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              handleModalVisible(true);
             }}
           >
             <PlusOutlined /> 新建
@@ -209,13 +213,9 @@ const TableList: React.FC = () => {
         request = {
           //将返回的数据经过处理后放在param上
           async (
-            params: U & {
-              pageSize?: number;
-              current?: number;
-              keyword?: string;
-          },
-            sort: Record<string, SortOrder>,filter: Record<string, (string | number)[] | null>) => {
-            const res = await listInterfaceInfoByPageUsingGet({
+            params: {},
+          sort: Record<string, SortOrder>,filter: Record<string,React.ReactText[] | null>) => {
+            const res:any = await listInterfaceInfoByPageUsingGet({
             ...params
           })
           console.log(res)
@@ -271,38 +271,12 @@ const TableList: React.FC = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <ModalForm
-        title={'新建规则'}
-        width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
-          if (success) {
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '规则名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
-      </ModalForm>
-      <UpdateForm
+
+      <UpdateModal
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
-            handleUpdateModalOpen(false);
+            handleUpdateModalVisible(false);
             setCurrentRow(undefined);
             if (actionRef.current) {
               actionRef.current.reload();
@@ -310,18 +284,18 @@ const TableList: React.FC = () => {
           }
         }}
         onCancel={() => {
-          handleUpdateModalOpen(false);
+          handleUpdateModalVisible(false);
           if (!showDetail) {
             setCurrentRow(undefined);
           }
         }}
-        updateModalOpen={updateModalOpen}
+        visible={updateModalVisible}
         values={currentRow || {}}
       />
 
       <Drawer
         width={600}
-        open={showDetail}
+        Visible={showDetail}
         onClose={() => {
           setCurrentRow(undefined);
           setShowDetail(false);
@@ -342,6 +316,7 @@ const TableList: React.FC = () => {
           />
         )}
       </Drawer>
+      <CreateModal columns={columns} onCancel={()=>{handleModalVisible(false)}} onSubmit={(values)=>{handleAdd(values)}} visible={createModalVisible} />
     </PageContainer>
   );
 };
