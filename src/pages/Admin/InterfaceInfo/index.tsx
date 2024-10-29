@@ -8,7 +8,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
+import { Button, Drawer, Input, message,Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateModal';
 import UpdateModal from './components/UpdateModal';
@@ -177,18 +177,48 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
+      render: (_, record) => {
+        const buttons = [];
+        buttons.push(
+          <Button key="edit" type={"link"} onClick={() => {
             handleUpdateModalVisible(true);
             setCurrentRow(record);
-          }}
-        >
-          修改
-        </a>,
-      ],
-    },
+          }}>
+            修改
+          </Button>,
+          <Popconfirm key="pop" title="是否删除" description="确定删除这条数据吗？"
+                      okText="确定"
+                      cancelText="取消"
+                      onConfirm={() => deleteInterfaceInfo(record)}
+                      onCancel={() => {
+                        message.info("已取消删除");
+                      }}>
+            <Button key="delete" type={"link"} danger>
+              删除
+            </Button>
+          </Popconfirm>
+        );
+        //现在没发布
+        if (record.status === 0) {
+          buttons.push(
+            <Button key="online" type={"link"} onClick={() => updateStatus(record)}>
+              发布
+            </Button>
+          )
+        } 
+        //现在发布了 条件渲染
+        else {
+          buttons.push(
+            <Button key="outline" danger type={"link"} onClick={() => updateStatus(record)}>
+              下线
+            </Button>
+          )
+        }
+        ;
+        return buttons;
+      },
+      align: 'center',
+    }
   ];
   return (
     <PageContainer>
@@ -210,27 +240,23 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request = {
-          //将返回的数据经过处理后放在param上
-          async (
-            params: {},
-          sort: Record<string, SortOrder>,filter: Record<string,React.ReactText[] | null>) => {
-            const res:any = await listInterfaceInfoByPageUsingGet({
+        request={async (
+          params,
+        ) => {
+          const res = await listInterfaceInfoByPageUsingGet({
             ...params
-          })
-          console.log(res)
-          if(res?.data){
-            return{
-              data: res?.data.records | [],
+          });
+          if (res.data) {
+            return {
+              data: res?.data.records,
               success: true,
-              total: res.data.total
+              total: res?.data.total,
+            }
           }
-          }else{
-            return{
-              data:[],
-              success: false,
-              total: 0
-          }
+          return {
+            data: [],
+            success: false,
+            total: 0
           }
         }}
         columns={columns}
@@ -289,13 +315,13 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
             setCurrentRow(undefined);
           }
         }}
-        visible={updateModalVisible}
+        open={updateModalVisible}
         values={currentRow || {}}
       />
 
       <Drawer
         width={600}
-        Visible={showDetail}
+        open={showDetail}
         onClose={() => {
           setCurrentRow(undefined);
           setShowDetail(false);
@@ -316,7 +342,7 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
           />
         )}
       </Drawer>
-      <CreateModal columns={columns} onCancel={()=>{handleModalVisible(false)}} onSubmit={(values)=>{handleAdd(values)}} visible={createModalVisible} />
+      <CreateModal columns={columns} onCancel={()=>{handleModalVisible(false)}} onSubmit={(values)=>{handleAdd(values)}} open={createModalVisible} />
     </PageContainer>
   );
 };

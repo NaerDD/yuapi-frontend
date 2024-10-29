@@ -10,12 +10,12 @@ export type Props = {
   columns: ProColumns<API.InterfaceInfo>[];
   onCancel: () => void;
   onSubmit: (values: API.InterfaceInfo) => Promise<void>;
-  visible: boolean;
+  open: boolean;
 };
 const CreateModal: React.FC<Props> = (props) => {
-  const { visible, columns, onCancel, onSubmit } = props;
+  const { open, columns, onCancel, onSubmit } = props;
   return (
-    <Modal visible={visible} onCancel={() => onCancel?.()}>
+    <Modal open={open} onCancel={() => onCancel?.()}>
       <ProTable type='form' columns={columns} onSubmit={async (value) => {
         onSubmit?.(value);
       }}
