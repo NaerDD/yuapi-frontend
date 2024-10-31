@@ -47,12 +47,6 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseMap = {
-    code?: number;
-    data?: Record<string, any>;
-    message?: string;
-  };
-
   type BaseResponseobject = {
     code?: number;
     data?: Record<string, any>;
@@ -122,15 +116,13 @@ declare namespace API {
     createTime?: string;
     description?: string;
     id?: number;
-    idDelete?: number;
+    isDelete?: number;
     method?: string;
     name?: string;
     requestHeader?: string;
-    requestParams?: string;
     responseHeader?: string;
     status?: number;
     updateTime?: string;
-    uri?: string;
     url?: string;
     userId?: number;
   };
@@ -140,14 +132,8 @@ declare namespace API {
     method?: string;
     name?: string;
     requestHeader?: string;
-    requestParams?: string;
     responseHeader?: string;
     url?: string;
-  };
-
-  type InterfaceInfoInvokeRequest = {
-    id?: number;
-    userRequestParams?: string;
   };
 
   type InterfaceInfoUpdateRequest = {
@@ -166,16 +152,14 @@ declare namespace API {
     createTime?: string;
     description?: string;
     id?: number;
-    idDelete?: number;
+    isDelete?: number;
     method?: string;
     name?: string;
     requestHeader?: string;
-    requestParams?: string;
     responseHeader?: string;
     status?: number;
     totalNum?: number;
     updateTime?: string;
-    uri?: string;
     url?: string;
     userId?: number;
   };
@@ -434,8 +418,8 @@ declare namespace API {
   type UserInterfaceInfo = {
     createTime?: string;
     id?: number;
-    idDelete?: number;
     interfaceInfoId?: number;
+    isDelete?: number;
     leftNum?: number;
     status?: number;
     totalNum?: number;

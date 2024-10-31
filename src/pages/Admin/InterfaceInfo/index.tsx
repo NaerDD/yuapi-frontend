@@ -1,4 +1,11 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { removeRule, updateRule } from '@/services/ant-design-pro/api';
+import {
+  addInterfaceInfoUsingPost,
+  deleteInterfaceInfoUsingPost,
+  listInterfaceInfoByPageUsingGet,
+  offlineInterfaceInfoUsingPost,
+  onlineInterfaceInfoUsingPost,
+} from '@/services/Naerapi-backend/interfaceInfoController';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -8,60 +15,12 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import '@umijs/max';
-import { Button, Drawer, Input, message,Popconfirm } from 'antd';
+import { Button, Drawer, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
+import CreateModal from './components/CreateModel';
 import type { FormValueType } from './components/UpdateModal';
 import UpdateModal from './components/UpdateModal';
-import { addInterfaceInfoUsingPost, listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
-import CreateModal from './components/CreateModel';
 
-
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-  const hide = message.loading('Configuring');
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('Configuration is successful');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Configuration failed, please try again!');
-    return false;
-  }
-};
-
-/**
- *  Delete node
- * @zh-CN 删除节点
- *
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('Deleted successfully and will refresh soon');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again');
-    return false;
-  }
-};
 const TableList: React.FC = () => {
   /**
    * @en-US Pop-up window of new window
@@ -79,47 +38,135 @@ const TableList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
 
   /**
- * @en-US Add node
- * @zh-CN 添加节点
- * @param fieldse
- */
-const handleAdd = async (fields: API.InterfaceInfo) => {
-  const hide = message.loading('正在添加');
-  try {
-    await addInterfaceInfoUsingPost({
-      ...fields,
-    });
-    hide();
-    message.success('创建成功');
-    handleModalVisible(false);
-    return true;
-  } catch (error :any) {
-    hide();
-    message.error('创建失败'+ error.message);
-    return false;
-  }
-};
+   * @en-US Update node
+   * @zh-CN 更新节点
+   * @param fields
+   */
+  const handleUpdate = async (fields: FormValueType) => {
+    const hide = message.loading('Configuring');
+    try {
+      await updateRule({
+        name: fields.name,
+        desc: fields.desc,
+        key: fields.key,
+      });
+      hide();
+      message.success('Configuration is successful');
+      return true;
+    } catch (error) {
+      hide();
+      message.error('Configuration failed, please try again!');
+      return false;
+    }
+  };
 
   /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
+   * 发布接口
+   * @param record
+   */
+  const HandleOnline = async (record: API.IdRequest) => {
+    const hide = message.loading('发布中');
+    if (!record) return true;
+    try {
+      await onlineInterfaceInfoUsingPost({
+        id: record.id,
+      });
+      hide();
+      message.success('发布成功');
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      hide();
+      message.error('发布失败, 请重试！');
+      return false;
+    }
+  };
 
+  /**
+   * 下线接口
+   * @param record
+   */
+  const HandleOffline = async (record: API.IdRequest) => {
+    const hide = message.loading('下线中');
+    if (!record) return true;
+    try {
+      await offlineInterfaceInfoUsingPost({
+        id: record.id,
+      });
+      hide();
+      message.success('下线成功');
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      hide();
+      message.error('下线失败, 请重试！');
+      return false;
+    }
+  };
+
+  /**
+   *  Delete node
+   * @zh-CN 删除节点
+   * @param selectedRows
+   */
+  const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+    const hide = message.loading('正在删除');
+    if (!selectedRows) return true;
+    try {
+      await removeRule({
+        key: selectedRows.map((row) => row.key),
+      });
+      hide();
+      message.success('Deleted successfully and will refresh soon');
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      hide();
+      message.error('Delete failed, please try again');
+      return false;
+    }
+  };
+  /**
+   * @en-US Add node
+   * @zh-CN 添加节点
+   * @param fieldse
+   */
+  const handleAdd = async (fields: API.InterfaceInfo) => {
+    const hide = message.loading('正在添加');
+    try {
+      await addInterfaceInfoUsingPost({
+        ...fields,
+      });
+      hide();
+      message.success('创建成功');
+      handleModalVisible(false);
+      actionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      hide();
+      message.error('创建失败' + error.message);
+      return false;
+    }
+  };
+
+  //定义数据列表
   const columns: ProColumns<API.InterfaceInfo>[] = [
     {
       title: 'id',
       dataIndex: 'id',
-      valueType:'index'
+      valueType: 'index',
     },
     {
       title: '接口名称',
       dataIndex: 'name',
-      valueType:'text',
-      formItemProps:{
-        rules:[{
-          required:true,
-        }]
-      }
+      valueType: 'text',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+          },
+        ],
+      },
     },
     {
       title: '描述',
@@ -149,29 +196,29 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
     {
       title: '状态',
       dataIndex: 'status',
-      hideInForm:true,
-      valueEnum:{
-        0:{
-          text:'关闭',
-          status:'Default'
+      hideInForm: true,
+      valueEnum: {
+        0: {
+          text: '关闭',
+          status: 'Default',
         },
-        1:{
-          text:'开启',
-          status:'Processing'
+        1: {
+          text: '开启',
+          status: 'Processing',
         },
-      }
+      },
     },
     {
       title: '创建时间',
       dataIndex: 'createTime',
       valueType: 'dateTime',
-      hideInForm:true
+      hideInForm: true,
     },
     {
       title: '更新时间',
       dataIndex: 'updateTime',
       valueType: 'dateTime',
-      hideInForm:true
+      hideInForm: true,
     },
     {
       title: '操作',
@@ -180,45 +227,52 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
       render: (_, record) => {
         const buttons = [];
         buttons.push(
-          <Button key="edit" type={"link"} onClick={() => {
-            handleUpdateModalVisible(true);
-            setCurrentRow(record);
-          }}>
+          <Button
+            key="edit"
+            type={'link'}
+            onClick={() => {
+              handleUpdateModalVisible(true);
+              setCurrentRow(record);
+            }}
+          >
             修改
           </Button>,
-          <Popconfirm key="pop" title="是否删除" description="确定删除这条数据吗？"
-                      okText="确定"
-                      cancelText="取消"
-                      onConfirm={() => deleteInterfaceInfo(record)}
-                      onCancel={() => {
-                        message.info("已取消删除");
-                      }}>
-            <Button key="delete" type={"link"} danger>
+          <Popconfirm
+            key="pop"
+            title="是否删除"
+            description="确定删除这条数据吗？"
+            okText="确定"
+            cancelText="取消"
+            onConfirm={() => deleteInterfaceInfoUsingPost(record)}
+            onCancel={() => {
+              message.info('已取消删除');
+            }}
+          >
+            <Button key="delete" type={'link'} danger>
               删除
             </Button>
-          </Popconfirm>
+          </Popconfirm>,
         );
         //现在没发布
         if (record.status === 0) {
           buttons.push(
-            <Button key="online" type={"link"} onClick={() => updateStatus(record)}>
+            <Button key="online" type={'link'} onClick={() => HandleOnline(record)}>
               发布
-            </Button>
-          )
-        } 
+            </Button>,
+          );
+        }
         //现在发布了 条件渲染
         else {
           buttons.push(
-            <Button key="outline" danger type={"link"} onClick={() => updateStatus(record)}>
+            <Button key="outline" danger type={'link'} onClick={() => HandleOffline(record)}>
               下线
-            </Button>
-          )
+            </Button>,
+          );
         }
-        ;
         return buttons;
       },
       align: 'center',
-    }
+    },
   ];
   return (
     <PageContainer>
@@ -237,27 +291,25 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
               handleModalVisible(true);
             }}
           >
-            <PlusOutlined /> 新建
+            <PlusOutlined /> 新增接口
           </Button>,
         ]}
-        request={async (
-          params,
-        ) => {
+        request={async (params) => {
           const res = await listInterfaceInfoByPageUsingGet({
-            ...params
+            ...params,
           });
           if (res.data) {
             return {
               data: res?.data.records,
               success: true,
               total: res?.data.total,
-            }
+            };
           }
           return {
             data: [],
             success: false,
-            total: 0
-          }
+            total: 0,
+          };
         }}
         columns={columns}
         rowSelection={{
@@ -342,8 +394,18 @@ const handleAdd = async (fields: API.InterfaceInfo) => {
           />
         )}
       </Drawer>
-      <CreateModal columns={columns} onCancel={()=>{handleModalVisible(false)}} onSubmit={(values)=>{handleAdd(values)}} open={createModalVisible} />
+      <CreateModal
+        columns={columns}
+        onCancel={() => {
+          handleModalVisible(false);
+        }}
+        onSubmit={(values) => {
+          handleAdd(values);
+        }}
+        open={createModalVisible}
+      />
     </PageContainer>
   );
 };
+
 export default TableList;
