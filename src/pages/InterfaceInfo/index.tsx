@@ -1,40 +1,55 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { List, message } from 'antd';
-import React,{ useEffect, useState } from 'react';
-import { listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
+import React, { useEffect, useState } from 'react';
+import { getInterfaceInfoByIdUsingGet, listInterfaceInfoByPageUsingGet } from '@/services/Naerapi-backend/interfaceInfoController';
+import { useMatch, useParams } from '@umijs/max';
+import { Card, Descriptions } from 'antd';
+
 
 /**
  * 主页
  */
 const Index: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [list, setList] = useState<API.InterfaceInfo[]>([]);
-  const [total,setTotal] = useState<number>(0);
+  const [data, setData] = useState<API.InterfaceInfo[]>();
+  const params = useParams();
 
-  const loadData = async (current:number = 1,pageSize:number = 5) =>{
+  const loadData = async () => {
+    if (!params.id) {
+      message.error('参数不存在')
+      return;
+    }
     setLoading(true);
     try {
-      const res = await listInterfaceInfoByPageUsingGet({
-          current,
-          pageSize,
-      });
-      setList(res?.data?.records ?? []);
-      setTotal(res?.data?.total ?? 0);
-    } catch (error:any) {
-      message.error('请求失败，'+ error.message)
+      const res = await getInterfaceInfoByIdUsingGet(
+        { id: Number(params.id) }
+      );
+      setData(res.data);
+    } catch (error: any) {
+      message.error('请求失败，' + error.message)
     }
-    
-
     setLoading(false);
-
   }
-
   useEffect(() => {
     loadData();
   }, []);
   return (
     <PageContainer title="查看接口文档">
-
+      <Card>
+         {data ?(
+         <Descriptions title={data.name} column={1}>
+          <Descriptions.Item label="接口状态">{data.status ? '开启':'关闭'}</Descriptions.Item>
+          <Descriptions.Item label="描述">{data.description}</Descriptions.Item>
+          <Descriptions.Item label="请求地址">{data.url}</Descriptions.Item>
+          <Descriptions.Item label="请求方法">{data.method}</Descriptions.Item>
+          <Descriptions.Item label="请求头">{data.requestHeader}</Descriptions.Item>
+          <Descriptions.Item label="响应头">{data.responseHeader}</Descriptions.Item>
+          <Descriptions.Item label="创建时间">{data.createTime }</Descriptions.Item>
+          <Descriptions.Item label="更新时间">{data.updateTime }</Descriptions.Item>
+        </Descriptions>):(
+          <>接口不存在</>
+          )}
+      </Card>
     </PageContainer>
   );
 };

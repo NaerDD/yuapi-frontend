@@ -113,12 +113,12 @@ declare namespace API {
   };
 
   type InterfaceInfo = {
+    name?: string;
     createTime?: string;
     description?: string;
     id?: number;
     isDelete?: number;
     method?: string;
-    name?: string;
     requestHeader?: string;
     responseHeader?: string;
     status?: number;
