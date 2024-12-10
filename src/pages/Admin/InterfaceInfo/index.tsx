@@ -1,10 +1,10 @@
-import { removeRule, updateRule } from '@/services/ant-design-pro/api';
 import {
   addInterfaceInfoUsingPost,
   deleteInterfaceInfoUsingPost,
   listInterfaceInfoByPageUsingGet,
   offlineInterfaceInfoUsingPost,
   onlineInterfaceInfoUsingPost,
+  updateInterfaceInfoUsingPost,
 } from '@/services/Naerapi-backend/interfaceInfoController';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
@@ -18,7 +18,6 @@ import '@umijs/max';
 import { Button, Drawer, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateModal from './components/CreateModel';
-import type { FormValueType } from './components/UpdateModal';
 import UpdateModal from './components/UpdateModal';
 
 const TableList: React.FC = () => {
@@ -34,28 +33,52 @@ const TableList: React.FC = () => {
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.InterfaceInfo>();
+  const [selectedRowsState, setSelectedRows] = useState<API.InterfaceInfo[]>([]);
 
+  /**
+ * @en-US Add node
+ * @zh-CN 添加节点
+ * @param fieldse
+ */
+  const handleAdd = async (fields: API.InterfaceInfo) => {
+    const hide = message.loading('正在添加');
+    try {
+      await addInterfaceInfoUsingPost({
+        ...fields,
+      });
+      hide();
+      message.success('创建成功');
+      handleModalVisible(false);
+      actionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      hide();
+      message.error('创建失败' + error.message);
+      return false;
+    }
+  };
   /**
    * @en-US Update node
    * @zh-CN 更新节点
    * @param fields
    */
-  const handleUpdate = async (fields: FormValueType) => {
-    const hide = message.loading('Configuring');
+  const handleUpdate = async (fields: API.InterfaceInfo) => {
+    if (!currentRow) {
+      return;
+    }
+    const hide = message.loading('修改中');
     try {
-      await updateRule({
-        name: fields.name,
-        desc: fields.desc,
-        key: fields.key,
+      await updateInterfaceInfoUsingPost({
+        id: currentRow.id,
+        ...fields
       });
       hide();
-      message.success('Configuration is successful');
+      message.success('修改成功');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       hide();
-      message.error('Configuration failed, please try again!');
+      message.error('修改失败' + error.message);
       return false;
     }
   };
@@ -109,45 +132,24 @@ const TableList: React.FC = () => {
    * @zh-CN 删除节点
    * @param selectedRows
    */
-  const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+  const handleRemove = async (record: API.InterfaceInfo) => {
     const hide = message.loading('正在删除');
-    if (!selectedRows) return true;
+    if (!record) return true;
     try {
-      await removeRule({
-        key: selectedRows.map((row) => row.key),
+      await deleteInterfaceInfoUsingPost({
+        id: record.id
       });
       hide();
-      message.success('Deleted successfully and will refresh soon');
-      actionRef.current?.reload();
-      return true;
-    } catch (error) {
-      hide();
-      message.error('Delete failed, please try again');
-      return false;
-    }
-  };
-  /**
-   * @en-US Add node
-   * @zh-CN 添加节点
-   * @param fieldse
-   */
-  const handleAdd = async (fields: API.InterfaceInfo) => {
-    const hide = message.loading('正在添加');
-    try {
-      await addInterfaceInfoUsingPost({
-        ...fields,
-      });
-      hide();
-      message.success('创建成功');
-      handleModalVisible(false);
+      message.success('删除成功');
       actionRef.current?.reload();
       return true;
     } catch (error: any) {
       hide();
-      message.error('创建失败' + error.message);
+      message.error('删除失败' + error.message);
       return false;
     }
   };
+
 
   //定义数据列表
   const columns: ProColumns<API.InterfaceInfo>[] = [
@@ -179,8 +181,8 @@ const TableList: React.FC = () => {
       valueType: 'text',
     },
     {
-      title: 'url',
-      dataIndex: '接口地址',
+      title: '接口地址',
+      dataIndex: 'url',
       valueType: 'text',
     },
     {
@@ -253,7 +255,7 @@ const TableList: React.FC = () => {
               message.info('已取消删除');
             }}
           >
-            <Button key="delete" type={'link'} danger>
+            <Button key="delete" type={'link'} danger onClick={() => handleRemove(record)}>
               删除
             </Button>
           </Popconfirm>,
@@ -356,6 +358,7 @@ const TableList: React.FC = () => {
       )}
 
       <UpdateModal
+        columns={columns}
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {

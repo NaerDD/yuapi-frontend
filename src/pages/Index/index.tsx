@@ -24,8 +24,6 @@ const Index: React.FC = () => {
     } catch (error:any) {
       message.error('请求失败，'+ error.message)
     }
-    
-
     setLoading(false);
 
   }

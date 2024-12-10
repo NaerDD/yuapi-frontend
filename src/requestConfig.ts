@@ -28,21 +28,6 @@ export const requestConfig: RequestConfig = {
   baseURL: 'http://localhost:7529',
   withCredentials: true,
 
-  // 错误处理： umi@3 的错误处理方案。
-  errorConfig: {
-    // 错误抛出
-    errorThrower: (res) => {
-      const { success, data, errorCode, errorMessage, showType } =
-        res as unknown as ResponseStructure;
-      if (!success) {
-        const error: any = new Error(errorMessage);
-        error.name = 'BizError';
-        error.info = { errorCode, errorMessage, showType, data };
-        throw error; // 抛出自制的错误
-      }
-    },
-  },
-
   // 请求拦截器
   requestInterceptors: [
     (config: RequestOptions) => {
