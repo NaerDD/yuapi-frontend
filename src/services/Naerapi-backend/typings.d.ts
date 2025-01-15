@@ -23,12 +23,6 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseListSelfInterfaceDateVo = {
-    code?: number;
-    data?: SelfInterfaceDateVo[];
-    message?: string;
-  };
-
   type BaseResponseListUserInterfaceInfo = {
     code?: number;
     data?: UserInterfaceInfo[];
@@ -380,23 +374,6 @@ declare namespace API {
     searchCount?: boolean;
     size?: number;
     total?: number;
-  };
-
-  type payInterfaceUsingPOSTParams = {
-    /** interfaceName */
-    interfaceName?: string;
-    /** adminPsd */
-    adminPsd?: string;
-    /** payAccount */
-    payAccount?: string;
-    /** num */
-    num?: number;
-  };
-
-  type SelfInterfaceDateVo = {
-    interfaceName?: string;
-    leftNum?: number;
-    totalNum?: number;
   };
 
   type User = {

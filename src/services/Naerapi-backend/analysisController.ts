@@ -2,8 +2,8 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** listTopInterfaceInfoInvoke GET /api/analysis/top/interface/invoke */
-export async function listTopInterfaceInfoInvokeUsingGet(options?: { [key: string]: any }) {
+/** ListTopInvokeInterfaceInfo GET /api/analysis/top/interface/invoke */
+export async function listTopInvokeInterfaceInfoUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListInterfaceVo>('/api/analysis/top/interface/invoke', {
     method: 'GET',
     ...(options || {}),
