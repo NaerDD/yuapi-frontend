@@ -5,7 +5,7 @@ export default function access(initialState: InitialState | undefined) {
   const { loginUser } = initialState ?? {};
   return {
     canUser:loginUser,
-    // canAdmin: currentUser && currentUser.access === 'admin',
+    //检查权限
     canAdmin: loginUser?.userRole === 'admin',
   };
 }

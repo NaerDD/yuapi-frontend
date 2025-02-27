@@ -8,15 +8,21 @@ import { getLoginUserUsingGet } from './services/Naerapi-backend/userController'
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
+
 /**
- * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
- * */
+ * 页面初次加载时，获取全局数据 
+ * 用户登录 handleSubmit->提交表单到后端 后端返回用户信息 将后端返回的信息存到InitialState中 到Cookie中
+ * 通过getInitialState获取到InitialState中的数据
+ * 用户每次刷新页面时，都会调用getInitialState获取到InitialState中的数据
+ */
 export async function getInitialState(): Promise<initialState> {
   //当页面首次加载时，获取全局保存的数据，比如用户登录信息
   const state:initialState = {
     loginUser:undefined,
+    
   }
     try {
+      //调用openapi生成的接口 获取登录用户信息
       const res = await getLoginUserUsingGet();
       if(res.data){
         state.loginUser = res.data;

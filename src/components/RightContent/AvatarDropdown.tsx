@@ -66,13 +66,16 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
   const onMenuClick = useCallback(
     (event: MenuInfo) => {
       const { key } = event;
+      //如果点击的是退出登录
       if (key === 'logout') {
         flushSync(() => {
           setInitialState((s) => ({ ...s, currentUser: undefined }));
         });
+        //退出登录 调用openapi生成的接口
         userLogoutUsingPost();
         return;
       }
+      //如果 key 不是 'logout'，则使用 history.push 导航到 /account/${key} 路径，可能是用于访问用户账户的不同部分（如个人中心、设置等
       history.push(`/account/${key}`);
     },
     [setInitialState],

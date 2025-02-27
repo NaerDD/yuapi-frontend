@@ -2,6 +2,9 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
+// 使用openapi根据后端提供的swagger文档生成的接口
+// 该文件的代码由工具生成，请勿手动修改
+
 /** addInterfaceInfo POST /api/interfaceInfo/add */
 export async function addInterfaceInfoUsingPost(
   body: API.InterfaceInfoAddRequest,

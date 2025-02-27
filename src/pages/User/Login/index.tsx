@@ -108,7 +108,9 @@ const Login: React.FC = () => {
       });
       if (res.data) {
         const urlParams = new URL(window.location.href).searchParams;
+        //路由跳转
         history.push(urlParams.get('redirect') || '/');
+        //将后端返回的信息存到InitialState中
         setInitialState({
           loginUser: res.data,
         })
