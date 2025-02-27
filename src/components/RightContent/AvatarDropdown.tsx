@@ -12,7 +12,7 @@ export type GlobalHeaderRightProps = {
   menu?: boolean;
   children?: React.ReactNode;
 };
-//下拉框  添加注释测试git
+//下拉框  添加注释测试git  1111
 export const AvatarName = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
